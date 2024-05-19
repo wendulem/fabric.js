@@ -1,18 +1,18 @@
+import { classRegistry } from '../../ClassRegistry';
 import { noop } from '../../constants';
+import type { BaseFilter } from '../../filters/BaseFilter';
 import type { Pattern } from '../../Pattern';
+import type { Shadow } from '../../Shadow';
 import type { FabricObject } from '../../shapes/Object/FabricObject';
+import type { FabricObject as BaseFabricObject } from '../../shapes/Object/Object';
 import type {
   Abortable,
   Constructor,
   TCrossOrigin,
   TFiller,
 } from '../../typedefs';
-import { createImage } from './dom';
-import { classRegistry } from '../../ClassRegistry';
-import type { BaseFilter } from '../../filters/BaseFilter';
-import type { FabricObject as BaseFabricObject } from '../../shapes/Object/Object';
 import { FabricError, SignalAbortedError } from '../internals/console';
-import type { Shadow } from '../../Shadow';
+import { createImage } from './dom';
 
 export type LoadImageOptions = Abortable & {
   /**
@@ -32,33 +32,53 @@ export const loadImage = (
   { signal, crossOrigin = null }: LoadImageOptions = {}
 ) =>
   new Promise<HTMLImageElement>(function (resolve, reject) {
+    console.log(`loadImage called with URL: ${url}`);
+
     if (signal && signal.aborted) {
+      console.log('Signal is already aborted');
       return reject(new SignalAbortedError('loadImage'));
     }
+
     const img = createImage();
+    console.log('Image element created');
+
     let abort: EventListenerOrEventListenerObject;
+
     if (signal) {
       abort = function (err: Event) {
+        console.log('Abort event triggered', err);
         img.src = '';
         reject(err);
       };
       signal.addEventListener('abort', abort, { once: true });
     }
+
     const done = function () {
+      console.log('Image load or error handler called');
       img.onload = img.onerror = null;
       abort && signal?.removeEventListener('abort', abort);
       resolve(img);
     };
+
     if (!url) {
+      console.log('No URL provided');
       done();
       return;
     }
+
     img.onload = done;
     img.onerror = function () {
+      console.log('Error loading image');
       abort && signal?.removeEventListener('abort', abort);
       reject(new FabricError(`Error loading ${img.src}`));
     };
-    crossOrigin && (img.crossOrigin = crossOrigin);
+
+    if (crossOrigin) {
+      console.log(`Setting crossOrigin to ${crossOrigin}`);
+      img.crossOrigin = crossOrigin;
+    }
+
+    console.log(`Setting image source to ${url}`);
     img.src = url;
   });
 

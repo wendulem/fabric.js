@@ -45,8 +45,7 @@ export class InteractiveFabricObject<
     EventSpec extends ObjectEvents = ObjectEvents
   >
   extends FabricObject<Props, SProps, EventSpec>
-  implements FabricObjectProps
-{
+  implements FabricObjectProps {
   declare noScaleCache: boolean;
 
   declare snapAngle?: TDegree;
@@ -84,6 +83,9 @@ export class InteractiveFabricObject<
 
   declare hoverCursor: CSSStyleDeclaration['cursor'] | null;
   declare moveCursor: CSSStyleDeclaration['cursor'] | null;
+
+  // Add the boundingBox property
+  declare boundingBox: FabricObject | null;
 
   /**
    * The object's controls' position in viewport coordinates
@@ -157,7 +159,7 @@ export class InteractiveFabricObject<
         target = transform.target,
         action = transform.action;
       if (
-        this === (target as unknown as this) &&
+        this === ((target as unknown) as this) &&
         action &&
         action.startsWith('scale')
       ) {
@@ -351,7 +353,7 @@ export class InteractiveFabricObject<
   drawSelectionBackground(ctx: CanvasRenderingContext2D): void {
     if (
       !this.selectionBackgroundColor ||
-      (this.canvas && (this.canvas._activeObject as unknown as this) !== this)
+      (this.canvas && ((this.canvas._activeObject as unknown) as this) !== this)
     ) {
       return;
     }

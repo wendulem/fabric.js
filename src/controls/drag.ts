@@ -23,8 +23,40 @@ export const dragHandler: TransformActionHandler = (
     newTop = y - offsetY,
     moveX = !isLocked(target, 'lockMovementX') && target.left !== newLeft,
     moveY = !isLocked(target, 'lockMovementY') && target.top !== newTop;
-  moveX && target.set(LEFT, newLeft);
-  moveY && target.set(TOP, newTop);
+
+  // Get bounding box (if any)
+  const boundingBox = target.boundingBox
+    ? target.boundingBox.getBoundingRect()
+    : null;
+  const objBoundingBox = target.getBoundingRect();
+
+  if (boundingBox) {
+    if (newLeft < boundingBox.left) {
+      target.left = boundingBox.left;
+    } else if (
+      newLeft + objBoundingBox.width >
+      boundingBox.left + boundingBox.width
+    ) {
+      target.left = boundingBox.left + boundingBox.width - objBoundingBox.width;
+    } else {
+      moveX && target.set(LEFT, newLeft);
+    }
+
+    if (newTop < boundingBox.top) {
+      target.top = boundingBox.top;
+    } else if (
+      newTop + objBoundingBox.height >
+      boundingBox.top + boundingBox.height
+    ) {
+      target.top = boundingBox.top + boundingBox.height - objBoundingBox.height;
+    } else {
+      moveY && target.set(TOP, newTop);
+    }
+  } else {
+    moveX && target.set(LEFT, newLeft);
+    moveY && target.set(TOP, newTop);
+  }
+
   if (moveX || moveY) {
     fireEvent('moving', commonEventInfo(eventData, transform, x, y));
   }
